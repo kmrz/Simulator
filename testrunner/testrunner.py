@@ -8,9 +8,9 @@ import logging
 simconfig = """
 --title          %s
 --job_id         401
---block_time     3
+--block_time     0
 --block_margin   0
---one_block      True
+--one_block      False
 --serial         0
 --cpu_count      0
 --cpu_percent    70
@@ -71,7 +71,7 @@ if __name__ == "__main__":
         pass
     logging.basicConfig(level=logging.INFO)
 
-    traces = ["ANL-Intrepid-2009-1", "CEA-Curie-2011-2", "METACENTRUM-2009-2", "PIK-IPLEX-2009-1", "RICC-2010-2",]
+    traces = ["ANL-Intrepid-2009-1", "CEA-Curie-2011-2", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", ]
     tracedir = "../traces/"
 
     for trace in traces:
