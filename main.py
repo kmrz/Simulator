@@ -51,15 +51,11 @@ class Block(object):
 		self.margin_count = len(self._jobs) - self.core_count
 
 		self.number = num
-		self.cpus = self.nodes = None
 
 	@property
-	def core_start(self):
-		return self._first_core.submit
-
-	@property
-	def core_end(self):
-		return self._first_core.submit + self._block_time
+	def core_period(self):
+		return (self._first_core.submit,
+			self._first_core.submit + self._block_time)
 
 	def __len__(self):
 		return len(self._jobs)
@@ -247,7 +243,7 @@ def simulate_block(block, sched, alg_conf, part_conf):
 	Do a simulation on the specified block.
 
 	Args:
-	  block: `Block` with `Jobs` and cluster node configuration.
+	  block: `Block` with `Jobs` to simulate.
 	  sched: selected scheduler from part_conf.schedulers.
 	  alg_conf: algorithmic settings.
 	  part_conf: parts instances.
@@ -257,15 +253,12 @@ def simulate_block(block, sched, alg_conf, part_conf):
 	  diagnostic statistics from the run.
 
 	"""
-	assert block.cpus and block.nodes, 'invalid block configuration'
-	assert block.cpus == sum(block.nodes.itervalues()), 'invalid nodes'
+	assert block.cpus, 'invalid block cpu count'
 
 	# extract the users and reset all instances
 	users = {}
-	time_zero = block[0].submit
 
 	for j in block:
-		j.submit -= time_zero
 		j.reset()
 		users[j.user.ID] = j.user
 	for u in users.itervalues():
@@ -287,8 +280,8 @@ def simulate_block(block, sched, alg_conf, part_conf):
 	if not PROFILE_FLAG:
 		r = my_sim.run()
 		# restore original values
+		#TODO TO POWINNO BYC JEDNAK USELESS SKORO JEST WSZYSTKO KOPIOWANE!!
 		for j in block:
-			j.submit += time_zero
 			j.reset()
 		for u in users.itervalues():
 			u.reset()
@@ -358,20 +351,26 @@ def run(workload, args):
 	jobs, users = parser.parse_workload(workload, sim_conf.serial)
 	jobs.sort(key=lambda j: j.submit)  # order by submit time
 
-	# set the missing job attributes
+	# set job time limit and validate run time
+	killed = 0
 	for j in jobs:
 		j.time_limit = part_conf.submitter.time_limit(j)
-		part_conf.submitter.modify_configuration(j)
-		j.validate_configuration()
+		if j.run_time > j.time_limit:
+			j.run_time = j.time_limit
+			killed += 1
+	
+	if killed:
+		logging.warn('%s jobs will end prematurely due to insufficient'
+		             ' time limit' % killed)
 
-	# set the missing user attributes
+	# set user shares
 	shares = {}
 	for uid, u in users.iteritems():
 		shares[uid] = part_conf.share.user_share(u)
 	# shares must be normalized
-	total_shares = sum(shares.itervalues())
+	total_shares = sum(shares.itervalues()) * 1.0
 	for uid, u in users.iteritems():
-		u.shares = float(shares[uid]) / total_shares
+		u.shares = shares[uid] / total_shares
 
 	# divide into blocks
 	blocks = divide_jobs(jobs, sim_conf.job_id, sim_conf.block_time,
@@ -391,19 +390,8 @@ def run(workload, args):
 			cpus = sim_conf.cpu_count
 		else:
 			cpus = cpu_percentile(bl, sim_conf.cpu_percent)
-		# setup the node configuration
-		if sim_conf.cpu_per_node:
-			full_count = cpus / sim_conf.cpu_per_node
-			nodes = {i: sim_conf.cpu_per_node
-				 for i in xrange(full_count)}
-			rest = cpus % sim_conf.cpu_per_node
-			if rest:
-				nodes[len(nodes)] = rest
-		else:
-			nodes = {0: cpus}
 
 		bl.cpus = cpus
-		bl.nodes = nodes
 
 		for sched in part_conf.schedulers:
 			params = (bl, sched, alg_conf, part_conf)
