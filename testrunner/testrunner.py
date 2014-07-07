@@ -47,7 +47,9 @@ def conf_nonclairvoyant(tracename):
 
 def run(*command):
     logging.info("running: \n"+" ".join(command))
-    subprocess.call(command)
+    returncode = subprocess.call(command)
+    if returncode != 0:
+        raise RuntimeError("Command: %s returned non-zero exit code %d" % (str(command), returncode))
 
 def test_trace(tracedir, tracename):
     conf_clairvoyant(tracename)
