@@ -7,14 +7,13 @@ import logging
 
 simconfig = """
 --title          %s
---job_id         401
+--job_id         0
 --block_time     0
 --block_margin   0
 --one_block      False
 --serial         0
 --cpu_count      0
 --cpu_percent    70
---cpu_per_node   0
 --output         testrunner_results
 
 --threshold      10
@@ -26,6 +25,7 @@ simconfig = """
 --bf_interval    5
 
 --estimator      %s
+--last_completed 2
 --submitter      %s
 --selector       VirtualSelector
 --schedulers     %s
@@ -40,7 +40,7 @@ def conf_clairvoyant(tracename):
     return "clairvoyant_conf"
 
 def conf_nonclairvoyant(tracename):
-    curr_config = simconfig % ("trun-nonclairvoyant-"+tracename, "PreviousN", "FromWorkloadSubmitter", "OStrich")
+    curr_config = simconfig % ("trun-nonclairvoyant-"+tracename, "PreviousNEstimator", "FromWorkloadSubmitter", "OStrich")
     with open("nonclairvoyant_conf", "w") as f:
         f.write(curr_config)
     return "nonclairvoyant_conf"
