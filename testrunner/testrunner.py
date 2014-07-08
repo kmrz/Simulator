@@ -45,7 +45,7 @@ def conf_nonclairvoyant(tracename):
     curr_config = simconfig % ("trun-nonclairvoyant-"+tracename, "PreviousNEstimator", "FromWorkloadSubmitter", "OStrich")
     with open("nonclairvoyant_conf_"+tracename, "w") as f:
         f.write(curr_config)
-    return "nonclairvoyant_conf"+tracename
+    return "nonclairvoyant_conf_"+tracename
 
 def run(*command):
     logging.info("running: \n"+" ".join(command))
