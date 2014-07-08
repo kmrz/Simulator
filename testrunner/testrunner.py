@@ -37,15 +37,15 @@ simconfig = """
 
 def conf_clairvoyant(tracename):
     curr_config = simconfig % ("trun-clairvoyant-"+tracename, "NaiveEstimator", "OracleSubmitter", "OStrich Fairshare")
-    with open("clairvoyant_conf", "w") as f:
+    with open("clairvoyant_conf_"+tracename, "w") as f:
         f.write(curr_config)
-    return "clairvoyant_conf"
+    return "clairvoyant_conf_"+tracename
 
 def conf_nonclairvoyant(tracename):
     curr_config = simconfig % ("trun-nonclairvoyant-"+tracename, "PreviousNEstimator", "FromWorkloadSubmitter", "OStrich")
-    with open("nonclairvoyant_conf", "w") as f:
+    with open("nonclairvoyant_conf_"+tracename, "w") as f:
         f.write(curr_config)
-    return "nonclairvoyant_conf"
+    return "nonclairvoyant_conf"+tracename
 
 def run(*command):
     logging.info("running: \n"+" ".join(command))
@@ -54,10 +54,10 @@ def run(*command):
         raise RuntimeError("Command: %s returned non-zero exit code %d" % (str(command), returncode))
 
 def test_trace(tracename, tracedir=""):
-    conf_clairvoyant(tracename)
-    conf_nonclairvoyant(tracename)
-    run("python", "main.py", "run", tracedir+tracename+".swf", "@clairvoyant_conf")
-    run("python", "main.py", "run", tracedir+tracename+".swf", "@nonclairvoyant_conf")
+    cc = conf_clairvoyant(tracename)
+    cnc = conf_nonclairvoyant(tracename)
+    run("python", "main.py", "run", tracedir+tracename+".swf", "@"+cc)
+    run("python", "main.py", "run", tracedir+tracename+".swf", "@"+cnc)
 
 def draw_trace(tracename):
     fsfile = glob.glob("testrunner_results/trun-clairvoyant-"+tracename+"-Fairshare-*")[0]
@@ -70,7 +70,7 @@ def draw_trace(tracename):
 
 if __name__ == "__main__":
     try:
-        os.mkdir("testrunner_results2")
+        os.mkdir("testrunner_results")
     except OSError:
         pass
     logging.basicConfig(level=logging.INFO)
@@ -79,5 +79,5 @@ if __name__ == "__main__":
     tracedir = "../traces/"
     pool = multiprocessing.Pool(multiprocessing.cpu_count() / 2)
     pool.map(functools.partial(test_trace, tracedir=tracedir), traces)
-    for trace in traces:
-        draw_trace(trace)
+    # for trace in traces:
+    #     draw_trace(trace)
