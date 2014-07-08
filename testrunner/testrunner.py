@@ -4,6 +4,8 @@ import subprocess
 import os
 import glob
 import logging
+import multiprocessing
+import functools
 
 simconfig = """
 --title          %s
@@ -51,7 +53,7 @@ def run(*command):
     if returncode != 0:
         raise RuntimeError("Command: %s returned non-zero exit code %d" % (str(command), returncode))
 
-def test_trace(tracedir, tracename):
+def test_trace(tracename, tracedir=""):
     conf_clairvoyant(tracename)
     conf_nonclairvoyant(tracename)
     run("python", "main.py", "run", tracedir+tracename+".swf", "@clairvoyant_conf")
@@ -68,14 +70,14 @@ def draw_trace(tracename):
 
 if __name__ == "__main__":
     try:
-        os.mkdir("testrunner_results")
+        os.mkdir("testrunner_results2")
     except OSError:
         pass
     logging.basicConfig(level=logging.INFO)
 
     traces = ["ANL-Intrepid-2009-1", "CEA-Curie-2011-2", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", ]
     tracedir = "../traces/"
-
+    pool = multiprocessing.Pool(multiprocessing.cpu_count() / 2)
+    pool.map(functools.partial(test_trace, tracedir=tracedir), traces)
     for trace in traces:
-        test_trace(tracedir, trace)
         draw_trace(trace)
