@@ -7,6 +7,7 @@ import logging
 import multiprocessing
 import functools
 import argparse
+import itertools
 
 simconfig = """
 --title          %s
@@ -54,11 +55,10 @@ def run(*command):
     if returncode != 0:
         raise RuntimeError("Command: %s returned non-zero exit code %d" % (str(command), returncode))
 
-def test_trace(tracename, tracedir=""):
-    cc = conf_clairvoyant(tracename)
-    cnc = conf_nonclairvoyant(tracename)
-    run("python", "main.py", "run", tracedir+tracename+".swf", "@"+cc)
-    run("python", "main.py", "run", tracedir+tracename+".swf", "@"+cnc)
+
+def run_standard((argtrace, argconfig)):
+    run("python", "main.py", "run", argtrace, argconfig)
+
 
 def draw_trace(tracename):
     fsfile = glob.glob("testrunner_results/trun-clairvoyant-"+tracename+"-Fairshare-*")[0]
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     parser.add_argument('--simulate', action="store_true", help="run simulations")
     parser.add_argument('--draw', action="store_true", help="draw plots from results")
     args = parser.parse_args()
-
+    traces = ["ANL-Intrepid-2009-1", "CEA-Curie-2011-2", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", ]
     logging.basicConfig(level=logging.INFO, filename="testrunner.log")
 
     if args.simulate:
@@ -83,8 +83,15 @@ if __name__ == "__main__":
         except OSError:
             pass
         tracedir = "../traces/"
+        cc_configs = [ conf_clairvoyant(tracename) for tracename in traces ]
+        cnc_configs = [ conf_nonclairvoyant(tracename) for tracename in traces ]
+        configs = cc_configs[:]
+        configs.extend(cnc_configs)
+        argconfigs = [ "@"+config for config in configs ]
+        argtraces = [ tracedir+tracename+".swf" for tracename in traces ]
+        argtraces.extend(argtraces)
         pool = multiprocessing.Pool(multiprocessing.cpu_count() / 2)
-        pool.map(functools.partial(test_trace, tracedir=tracedir), traces)
+        pool.map(run_standard, itertools.izip(argtraces, argconfigs))
 
     if args.draw:
         for trace in traces:
