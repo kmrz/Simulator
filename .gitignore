@@ -1,3 +1,6 @@
 *~
 *.py[cod]
-
+*.log
+/*conf*
+.DS_Store
+/testrunner_results
