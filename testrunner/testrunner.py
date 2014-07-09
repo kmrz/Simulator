@@ -6,6 +6,7 @@ import glob
 import logging
 import multiprocessing
 import functools
+import argparse
 
 simconfig = """
 --title          %s
@@ -66,18 +67,25 @@ def draw_trace(tracename):
     logging.info("clairvoyant ostrich file: %s" % clairfile)
     unclairfile = glob.glob("testrunner_results/trun-nonclairvoyant-"+tracename+"-OStrich-*")[0]
     logging.info("non-clairvoyant ostrich file: %s" % unclairfile)
-    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--minlen", "30", fsfile, clairfile, unclairfile)
+    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "30", fsfile, clairfile, unclairfile)
 
 if __name__ == "__main__":
-    try:
-        os.mkdir("testrunner_results")
-    except OSError:
-        pass
-    logging.basicConfig(level=logging.INFO)
+    parser = argparse.ArgumentParser(description='run simulations on many logs; draw results')
+    parser.add_argument('--simulate', action="store_true", help="run simulations")
+    parser.add_argument('--draw', action="store_true", help="draw plots from results")
+    args = parser.parse_args()
 
-    traces = ["ANL-Intrepid-2009-1", "CEA-Curie-2011-2", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", ]
-    tracedir = "../traces/"
-    pool = multiprocessing.Pool(multiprocessing.cpu_count() / 2)
-    pool.map(functools.partial(test_trace, tracedir=tracedir), traces)
-    # for trace in traces:
-    #     draw_trace(trace)
+    logging.basicConfig(level=logging.INFO, filename="testrunner.log")
+
+    if args.simulate:
+        try:
+            os.mkdir("testrunner_results")
+        except OSError:
+            pass
+        tracedir = "../traces/"
+        pool = multiprocessing.Pool(multiprocessing.cpu_count() / 2)
+        pool.map(functools.partial(test_trace, tracedir=tracedir), traces)
+
+    if args.draw:
+        for trace in traces:
+            draw_trace(trace)
