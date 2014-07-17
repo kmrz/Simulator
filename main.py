@@ -304,7 +304,7 @@ def setup_logging(debug, config=""):
 		lvl = 15
 	fmt = '%(levelname)s: %(message)s'
 	logging.basicConfig(
-		filename='sim-'+config+'.log',
+		filename='logs/sim-'+config.replace('/', '-')+'.log',
 		filemode='w',
 		format=fmt,
 		level=lvl
@@ -397,6 +397,7 @@ def run(workload, args):
 			cpus = cpu_percentile(bl, sim_conf.cpu_percent)
 
 		bl.cpus = cpus
+		logging.info('CPU count: %d' % cpus)
 
 		for sched in part_conf.schedulers:
 			params = (bl, sched, alg_conf, part_conf)
