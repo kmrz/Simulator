@@ -106,26 +106,28 @@ if __name__ == "__main__":
     blocks = [1, 1, 1, 14, 7]
     cpucounts = [0, 0, 0, 1418, 33336]
 
-    logging.basicConfig(level=logging.INFO, filename="testrunner.log")
+    try:
+        os.mkdir("logs")
+    except OSError:
+        pass
+
+    logging.basicConfig(level=logging.INFO, filename="logs/testrunner-%d.log" % (args.workerrank))
+    logging.info("args: "+str(args))
 
     if args.simulate or args.genconfigs:
         try:
             os.mkdir("testrunner_results")
         except OSError:
             pass
-        try:
-            shutil.rmtree(configdir)
-        except OSError:
-            pass
-        try:
-            os.mkdir(configdir)
-        except OSError:
-            pass
-
-        try:
-            os.mkdir("logs")
-        except OSError:
-            pass
+        if args.genconfigs:
+            try:
+                shutil.rmtree(configdir)
+            except OSError:
+                pass
+            try:
+                os.mkdir(configdir)
+            except OSError:
+                pass
 
         configs = []
         argtraces = []
