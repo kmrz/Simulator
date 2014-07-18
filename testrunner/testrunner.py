@@ -108,7 +108,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(level=logging.INFO, filename="testrunner.log")
 
-    if args.simulate:
+    if args.simulate or args.genconfigs:
         try:
             os.mkdir("testrunner_results")
         except OSError:
@@ -146,8 +146,10 @@ if __name__ == "__main__":
 
         logging.info("configs: "+str(argconfigs))
         logging.info("traces: "+str(argtraces))
-        pool = multiprocessing.Pool(multiprocessing.cpu_count() / 2)
-        pool.map(run_standard, itertools.izip(argtraces, argconfigs))
+
+        if args.simulate:
+            pool = multiprocessing.Pool(3)
+            pool.map(run_standard, itertools.izip(argtraces, argconfigs))
 
     # if args.draw:
     #     for trace in traces:
