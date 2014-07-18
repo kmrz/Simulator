@@ -411,8 +411,11 @@ def run_draw(args):
 
 	if args.output is None:
 		out = args.logs[0].split('-')[0]
+                trace_shortname = out
 	else:
 		out = args.output
+                trace_shortname = out.split('/')[-1]
+                trace_shortname = trace_shortname.split('-')[0]
 
 	if not os.path.exists(out):
 		os.mkdir(out)  # doesn't exist
@@ -448,7 +451,7 @@ def run_draw(args):
 		(average_per_user, "jobs", 2),
 		(average_per_user, "campaigns", 2),
 		(utility, "total", None),
-		#(heatmap, "campaigns", None),
+		(heatmap, "campaigns", None),
 	]
 
 	for i, (g, key, legend) in enumerate(graphs):
@@ -462,7 +465,7 @@ def run_draw(args):
 		# title = '{} {}'.format(key.capitalize(), g.__doc__)
 		# plt.title(title, y=1.05, fontsize=20)	 # add title
 
-		fname = '{}_{}.pdf'.format(key.capitalize(), g.__name__)
+		fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
 		fig.tight_layout()
 		fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
 

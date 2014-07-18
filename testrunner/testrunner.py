@@ -153,8 +153,6 @@ if __name__ == "__main__":
             pool = multiprocessing.Pool(3)
             pool.map(run_standard, itertools.izip(argtraces, argconfigs))
 
-    # if args.draw:
-    #     for trace in traces:
-    #         draw_trace(trace)
-
-
+    if args.draw:
+        for trace in traces:
+            draw_trace(trace)
