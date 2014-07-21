@@ -440,7 +440,7 @@ def run_draw(args):
 		if args.striplegend:
 			fields = key.split('-')
 			if fields[-3] == "OStrich":
-				key = fields[1] + " " + fields[-3]
+				key = fields[2] + " " + fields[-3]
 			else:
 				key = fields[-3]
 		simulations[key] = parse(filename)
