@@ -17,7 +17,7 @@ simconfig = """
 --block_margin   24
 --one_block      %s
 --block_number   %d
---serial         0
+--serial         %d
 --cpu_count      %d
 --cpu_percent    %d
 --output         testrunner_results
@@ -26,7 +26,7 @@ simconfig = """
 --decay          1
 --default_limit  7
 --share_file     shares.txt
---bf_depth       50
+--bf_depth       300
 --bf_window      24
 --bf_interval    5
 
@@ -40,7 +40,7 @@ simconfig = """
 
 configdir = "testrunner_confs"
 
-def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, writefile = True):
+def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial = 0, writefile = True):
     confname = "conf-trun-"
     if clairvoyant:
         algs = "OStrich Fairshare"
@@ -63,11 +63,11 @@ def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, writef
     else:
         one_block = "True"
         block_time = 90
-        confname += str(blocknumber)
+        confname += "%02d" % blocknumber
         cpu_percent = 0
 
     if writefile:
-        curr_config = simconfig % (confname, block_time, one_block, blocknumber, cpu_count, cpu_percent, estimator, submitter, algs)
+        curr_config = simconfig % (confname, block_time, one_block, blocknumber, serial, cpu_count, cpu_percent, estimator, submitter, algs)
         with open(configdir+"/"+confname, "w") as f:
             f.write(curr_config)
     return confname
@@ -91,7 +91,7 @@ def draw_trace(tracename):
     logging.info("clairvoyant ostrich file: %s" % clairfile)
     unclairfile = glob.glob("testrunner_results/trun-nonclairvoyant-"+tracename+"-OStrich-*")[0]
     logging.info("non-clairvoyant ostrich file: %s" % unclairfile)
-    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "30", fsfile, clairfile, unclairfile)
+    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", fsfile, clairfile, unclairfile)
 
 
 if __name__ == "__main__":
@@ -105,6 +105,7 @@ if __name__ == "__main__":
     traces = ["ANL-Intrepid-2009-1", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2", ]
     blocks = [1, 1, 1, 14, 7]
     cpucounts = [0, 0, 0, 1418, 33336]
+    serials = [0, 0, 0, 1418/4, 33336/4 ]
 
     try:
         os.mkdir("logs")
@@ -135,8 +136,8 @@ if __name__ == "__main__":
             for blocknumber in range(0, blocks[i]):
                 if blocks[i] == 1:
                     blocknumber = -1
-                configs.append( conf(tracename, blocknumber, True, cpucounts[i], args.genconfigs) )
-                configs.append( conf(tracename, blocknumber, False, cpucounts[i], args.genconfigs) )
+                configs.append( conf(tracename, blocknumber, True, cpucounts[i], serials[i], args.genconfigs) )
+                configs.append( conf(tracename, blocknumber, False, cpucounts[i], serials[i], args.genconfigs) )
                 argtraces.append(tracename)
                 argtraces.append(tracename)
 

@@ -421,7 +421,7 @@ def run(workload, args):
 
 		title = sim_conf.title
 		if sim_conf.one_block:
-			title += '-b%s' % sim_conf.block_number
+			title += '-b%02d' % int(sim_conf.block_number)
 
 		filename = '{}-{}-{}'.format(
 			title,
