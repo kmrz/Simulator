@@ -57,8 +57,10 @@ def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial
         one_block = "False"
         blocknumber = 0
         block_time = 0
-        cpu_count = 0
-        cpu_percent = 70
+        if cpu_count == 0:
+            cpu_percent = 70
+        else:
+            cpu_percent = 0
         confname += "0"
     else:
         one_block = "True"
@@ -104,8 +106,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     traces = ["ANL-Intrepid-2009-1", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2", ]
     blocks = [1, 1, 1, 14, 7]
-    cpucounts = [0, 0, 0, 1418, 33336]
-    serials = [0, 0, 0, 1418/4, 33336/4 ]
+    cpucounts = [110592, 368, 7138, 1117, 33336]
+    serials = [110592/10, 368/4, 7138/10, 1117/10, 33336/10 ]
+    # PIK cpu count: 70% - 1117; 80% - 1418
 
     try:
         os.mkdir("logs")
