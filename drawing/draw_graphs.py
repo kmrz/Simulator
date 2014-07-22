@@ -446,6 +446,9 @@ def run_draw(args):
 				key = fields[2] + " " + fields[-3]
 			else:
 				key = fields[-3]
+		if key in simulations:
+			print "Error: Duplikate key %s" % key
+			sys.exit(1)
 		simulations[key] = parse(filename)
 
 	# create selected graphs
