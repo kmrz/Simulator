@@ -85,11 +85,11 @@ def run_standard((argtrace, argconfig)):
 
 
 def draw_trace(tracename):
-    fsfile = glob.glob("testrunner_results/trun-clairvoyant-"+tracename+"-Fairshare-*")[0]
+    fsfile = glob.glob("testrunner_results/conf-trun-clairvoyant-"+tracename+"-*-Fairshare-*")[0]
     logging.info("fairshare file: %s" % fsfile)
-    clairfile = glob.glob("testrunner_results/trun-clairvoyant-"+tracename+"-OStrich-*")[0]
+    clairfile = glob.glob("testrunner_results/conf-trun-clairvoyant-"+tracename+"-*-OStrich-*")[0]
     logging.info("clairvoyant ostrich file: %s" % clairfile)
-    unclairfile = glob.glob("testrunner_results/trun-nonclairvoyant-"+tracename+"-OStrich-*")[0]
+    unclairfile = glob.glob("testrunner_results/conf-trun-nonclairvoyant-"+tracename+"-*-OStrich-*")[0]
     logging.info("non-clairvoyant ostrich file: %s" % unclairfile)
     run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", fsfile, clairfile, unclairfile)
 
