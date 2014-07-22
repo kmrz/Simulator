@@ -123,9 +123,12 @@ def cdf(simulations, key):
 	plt.xlabel('stretch')
 	plt.ylabel('fraction of ' + key)
 
+        plt.ylim((0.4, 1.0))
+        plt.xlim((1.0, 100))
 	plt.xscale('log', subsx=[])
 	# plt.axis([1, 50, 0, 1])
-	plt.xticks([1, 2, 3, 5, 10, 20, 50, 100, 200, 500], [1, 2, 3, 5, 10, 20, 50, 100, 200, 500])
+	# plt.xticks([1, 2, 3, 5, 10, 20, 50, 100, 200, 500], [1, 2, 3, 5, 10, 20, 50, 100, 200, 500])
+        plt.xticks([1, 2, 3, 5, 10, 20, 50, 100], [1, 2, 3, 5, 10, 20, 50, 100] )
 
 	for i, (sim, data) in enumerate(simulations.iteritems()):
 		values = {}
