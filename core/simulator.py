@@ -193,6 +193,7 @@ class GeneralSimulator(object):
 		visual_update = 60  # notify the user about the progress
 		#TODO DODAC POZA CZASEM TEZ PROCENTOWO CO 25%
 		next_visual = time.time() + visual_update
+		first_visual = True
 
 		while sub_iter < sub_total or not self._pq.empty():
 			# We only need to keep two `new_job` events in the
@@ -309,6 +310,11 @@ class GeneralSimulator(object):
 					top_prio = self._waiting_jobs[-1].proc
 				else:
 					top_prio = -1
+				if first_visual:
+					first_visual = False
+					logging.info("format: released_jobs completed_jobs |"+
+						     "busy_cpu free_cpu | wait_jobs cpu_req_first |"+
+						     "utilisation scheduled_jobs backfilled_jobs")
 				logging.info('events {} {}  |  cpus {} {}  |  waiting jobs {} {}'
 					     '  |  stats {:.2f} {:.2f} {:.2f}'.format(
 						sub_iter, end_iter,
