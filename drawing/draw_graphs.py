@@ -12,7 +12,7 @@ import os
 import sys
 import logging
 from ast import literal_eval
-
+import csv
 
 class Job(object):
 	short_len = 10
@@ -147,6 +147,22 @@ def cdf(simulations, key):
 			y.append(act/total)
 		style = _get_linestyle(i)
 		plt.plot(x, y, label=sim, **style)
+
+def export_stat(simulations, csvbasename):
+        with open(csvbasename+"-camp.csv", 'wb') as csvfile:
+                csvfile.write("sim_name, camp_id, user_id, util_at_submission, start_time, end_time, workload, stretch\n")
+                csvw = csv.writer(csvfile)
+                for (sim, data) in simulations.iteritems():
+                        for c in data['campaigns']:
+    				csvw.writerow([sim, c.ID, c.user, c.utility, c.start, c.end, c.workload, c.stretch])
+        with open(csvbasename+"-util.csv", 'wb') as csvfile:
+                csvfile.write("sim_name, time, duration, utilization\n")
+                csvw = csv.writer(csvfile)
+                currtime = 0
+                for (sim, data) in simulations.iteritems():
+                        for c in data['utility']:
+    				csvw.writerow([sim, currtime, c[0], c[1]])
+                                currtime += c[0]
 
 
 def heatmap(simulations, key, colorbar_range = 100):
@@ -473,6 +489,9 @@ def run_draw(args):
 		fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
 		fig.tight_layout()
 		fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
+
+        export_stat(simulations, os.path.join(out, trace_shortname))
+
 
 if __name__=="__main__":
 	logging.basicConfig()
