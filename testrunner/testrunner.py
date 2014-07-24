@@ -41,18 +41,17 @@ simconfig = """
 configdir = "testrunner_confs"
 
 def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial = 0, writefile = True):
-    confname = "conf-trun-"
+    confname = "conf-trun-"+tracename+"-"
     if clairvoyant:
         algs = "OStrich Fairshare"
         submitter = "OracleSubmitter"
         estimator = "NaiveEstimator"
         confname += "clairvoyant-"
     else:
-        algs = "OStrich"
+        algs = "OStrich Fairshare"
         submitter = "FromWorkloadSubmitter"
         estimator = "PreviousNEstimator"
         confname += "nonclairvoyant-"
-    confname += tracename + "-"
     if blocknumber == -1:
         one_block = "False"
         blocknumber = 0
@@ -87,13 +86,12 @@ def run_standard((argtrace, argconfig)):
 
 
 def draw_trace(tracename):
-    fsfile = glob.glob("testrunner_results/conf-trun-clairvoyant-"+tracename+"-*-Fairshare-*")[0]
-    logging.info("fairshare file: %s" % fsfile)
-    clairfile = glob.glob("testrunner_results/conf-trun-clairvoyant-"+tracename+"-*-OStrich-*")[0]
-    logging.info("clairvoyant ostrich file: %s" % clairfile)
-    unclairfile = glob.glob("testrunner_results/conf-trun-nonclairvoyant-"+tracename+"-*-OStrich-*")[0]
-    logging.info("non-clairvoyant ostrich file: %s" % unclairfile)
-    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", fsfile, clairfile, unclairfile)
+    fs_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-clairvoyant-*-Fairshare-*")[0]
+    fs_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-nonclairvoyant-*-Fairshare-*")[0]
+    os_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-clairvoyant-*-OStrich-*")[0]
+    os_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-nonclairvoyant-*-OStrich-*")[0]
+    logging.info("files: %s %s %s %s", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
+    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
 
 
 if __name__ == "__main__":
