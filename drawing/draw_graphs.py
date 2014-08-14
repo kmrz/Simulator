@@ -149,20 +149,20 @@ def cdf(simulations, key):
 		plt.plot(x, y, label=sim, **style)
 
 def export_stat(simulations, csvbasename):
-        with open(csvbasename+"-camp.csv", 'wb') as csvfile:
-                csvfile.write("sim_name, camp_id, user_id, util_at_submission, start_time, end_time, workload, stretch\n")
-                csvw = csv.writer(csvfile)
-                for (sim, data) in simulations.iteritems():
-                        for c in data['campaigns']:
-    				csvw.writerow([sim, c.ID, c.user, c.utility, c.start, c.end, c.workload, c.stretch])
-        with open(csvbasename+"-util.csv", 'wb') as csvfile:
-                csvfile.write("sim_name, time, duration, utilization\n")
-                csvw = csv.writer(csvfile)
-                currtime = 0
-                for (sim, data) in simulations.iteritems():
-                        for c in data['utility']:
-    				csvw.writerow([sim, currtime, c[0], c[1]])
-                                currtime += c[0]
+	with open(csvbasename+"-camp.csv", 'wb') as csvfile:
+		csvfile.write("sim_name, camp_id, user_id, util_at_submission, start_time, end_time, workload, stretch\n")
+		csvw = csv.writer(csvfile)
+		for (sim, data) in simulations.iteritems():
+			for c in data['campaigns']:
+				csvw.writerow([sim, c.ID, c.user, c.utility, c.start, c.end, c.workload, c.stretch])
+	with open(csvbasename+"-util.csv", 'wb') as csvfile:
+		csvfile.write("sim_name, time, duration, utilization\n")
+		csvw = csv.writer(csvfile)
+		currtime = 0
+		for (sim, data) in simulations.iteritems():
+			for c in data['utility']:
+				csvw.writerow([sim, currtime, c[0], c[1]])
+				currtime += c[0]
 
 
 def heatmap(simulations, key, colorbar_range = 100):
@@ -237,17 +237,17 @@ def average_per_user(simulations, key):
 
 def choose2(simulations, first = True):
 	keys = simulations.keys()
-        reduced_sims = collections.OrderedDict()
-        if first:
-                reduced_sims[keys[0]] = simulations[keys[0]]
-                reduced_sims[keys[1]] = simulations[keys[1]]
-        else:
-                if len(simulations) != 4:
-                        logger.warn("not enough simulations")
-                else:
-                        reduced_sims[keys[2]] = simulations[keys[2]]
-                        reduced_sims[keys[3]] = simulations[keys[3]]
-        return reduced_sims
+	reduced_sims = collections.OrderedDict()
+	if first:
+		reduced_sims[keys[0]] = simulations[keys[0]]
+		reduced_sims[keys[1]] = simulations[keys[1]]
+	else:
+		if len(simulations) != 4:
+			logger.warn("not enough simulations")
+		else:
+			reduced_sims[keys[2]] = simulations[keys[2]]
+			reduced_sims[keys[3]] = simulations[keys[3]]
+	return reduced_sims
 
 
 def utilization(simulations, key):
@@ -462,21 +462,21 @@ def run_draw(args):
 			fields = key.split('-')
 			key = fields[-5] + " " + fields[-3]
 		if key in simulations:
-			print "Error: Duplikate key %s" % key
+			print "Error: Duplicate key %s" % key
 			sys.exit(1)
 		simulations[key] = parse(filename)
 	clair_simulations = choose2(simulations, True)
 	nonclair_simulations = choose2(simulations, False)
 	# create selected graphs
 	graphs = [
-		(cdf, "jobs", 4, simulations, ),
-		(cdf, "campaigns", 4, simulations, ),
-		(average_per_user, "jobs", 2, simulations, ),
-		(average_per_user, "campaigns", 2, simulations, ),
-		(utilization, "relative clairvoyant", None, clair_simulations),
-		(utilization, "relative nonclairvoyant", None, nonclair_simulations),
-		(heatmap, "campaigns clairvoyant", None, clair_simulations),
-		(heatmap, "campaigns nonclairvoyant", None, nonclair_simulations),
+		# (cdf, "jobs", 4, simulations, ),
+		# (cdf, "campaigns", 4, simulations, ),
+		# (average_per_user, "jobs", 2, simulations, ),
+		# (average_per_user, "campaigns", 2, simulations, ),
+		# (utilization, "relative clairvoyant", None, clair_simulations),
+		# (utilization, "relative nonclairvoyant", None, nonclair_simulations),
+		# (heatmap, "campaigns clairvoyant", None, clair_simulations),
+		# (heatmap, "campaigns nonclairvoyant", None, nonclair_simulations),
 	]
 
 	for i, (g, key, legend,sims) in enumerate(graphs):
@@ -490,7 +490,7 @@ def run_draw(args):
 		fig.tight_layout()
 		fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
 
-        export_stat(simulations, os.path.join(out, trace_shortname))
+	export_stat(simulations, os.path.join(out, trace_shortname))
 
 
 if __name__=="__main__":
