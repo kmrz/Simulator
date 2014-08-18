@@ -23,6 +23,7 @@ def jointrace(tracename, outname, block_count):
                 for line in input:
                     output.write(line)
 
+
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
     traces = ["PIK-IPLEX-2009-1", "CEA-Curie-2011-2", ]
