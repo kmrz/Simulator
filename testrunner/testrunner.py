@@ -1,14 +1,16 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
-import subprocess
-import os
+import argparse
 import glob
+import itertools
 import logging
 import multiprocessing
-import functools
-import argparse
-import itertools
+import os
 import shutil
+import subprocess
+
+
+log = logging.getLogger(__name__)
 
 simconfig = """
 --title          %s
@@ -75,7 +77,7 @@ def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial
 
 
 def run(*command):
-    logging.info("running: \n"+" ".join(command))
+    log.info("running: \n"+" ".join(command))
     returncode = subprocess.call(command)
     if returncode != 0:
         raise RuntimeError("Command: %s returned non-zero exit code %d" % (str(command), returncode))
@@ -90,7 +92,7 @@ def draw_trace(tracename):
     fs_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-nonclairvoyant-*-Fairshare-*")[0]
     os_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-clairvoyant-*-OStrich-*")[0]
     os_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-nonclairvoyant-*-OStrich-*")[0]
-    logging.info("files: %s %s %s %s", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
+    log.info("files: %s %s %s %s", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
     run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
 
 
@@ -106,6 +108,8 @@ if __name__ == "__main__":
     blocks = [1, 1, 1, 1, 14, 7]
     cpucounts = [53, 110592, 368, 7138, 1117, 33336]
     serials = [0, 110592/10, 368/4, 7138/10, 1117/10, 33336/10 ] # in LPC all jobs are serial
+    if not (args.genconfigs or args.simulate or args.draw):
+        parser.error('No action requested, add --genconfigs or --simulate or --draw')
     # PIK cpu count: 70% - 1117; 80% - 1418
 
     try:
@@ -113,8 +117,8 @@ if __name__ == "__main__":
     except OSError:
         pass
 
-    logging.basicConfig(level=logging.INFO, filename="logs/testrunner-%d.log" % (args.workerrank))
-    logging.info("args: "+str(args))
+    logging.basicConfig(level=logging.INFO, filename="logs/testrunner-%d.log" % (args.workerrank), filemode='w')
+    log.info("args: "+str(args))
 
     if args.simulate or args.genconfigs:
         try:
@@ -148,8 +152,8 @@ if __name__ == "__main__":
         argconfigs = argconfigs[args.workerrank::args.workersize]
         argtraces = argtraces[args.workerrank::args.workersize]
 
-        logging.info("configs: "+str(argconfigs))
-        logging.info("traces: "+str(argtraces))
+        log.info("configs: "+str(argconfigs))
+        log.info("traces: "+str(argtraces))
 
         if args.simulate:
             pool = multiprocessing.Pool(3)
