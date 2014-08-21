@@ -2,10 +2,12 @@
 # -*- coding: utf-8 -*-
 import argparse
 import collections
+import csv
 import itertools
 import math
-import matplotlib.pyplot as plt
 import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
@@ -145,20 +147,24 @@ def cdf(simulations, key):
         plt.plot(x, y, label=sim, **style)
 
 
-def choose2(simulations):
-    keys = simulations.keys()
-    logging.warn("using 2 simulations: %s, %s " % (keys[0], keys[-1]))
-    orgsim = simulations
-    simulations = collections.OrderedDict()
-    simulations[keys[0]] = orgsim[keys[0]]
-    simulations[keys[-1]] = orgsim[keys[-1]]
-    return simulations
+def export_stat(simulations, csvbasename):
+    with open(csvbasename+"-camp.csv", 'wb') as csvfile:
+        csvfile.write("sim_name, camp_id, user_id, util_at_submission, start_time, end_time, workload, stretch\n")
+        csvw = csv.writer(csvfile)
+        for (sim, data) in simulations.iteritems():
+            for c in data['campaigns']:
+                csvw.writerow([sim, c.ID, c.user, c.utility, c.start, c.end, c.workload, c.stretch])
+    with open(csvbasename+"-util.csv", 'wb') as csvfile:
+        csvfile.write("sim_name, time, duration, utilization\n")
+        csvw = csv.writer(csvfile)
+        currtime = 0
+        for (sim, data) in simulations.iteritems():
+            for c in data['utility']:
+                csvw.writerow([sim, currtime, c[0], c[1]])
+                currtime += c[0]
 
 
 def heatmap(simulations, key, colorbar_range = 100):
-    if len(simulations) > 2:
-        simulations = choose2(simulations)
-
     max_y = 10
     v = {}
     for i in range(11, 20+1): # utility incremented by 0.05
@@ -227,8 +233,22 @@ def average_per_user(simulations, key):
         plt.plot(x, y, label=sim, **style)
     # plt.axis([0, len(y), 0, 100])
 
+def choose2(simulations, first = True):
+    keys = simulations.keys()
+    reduced_sims = collections.OrderedDict()
+    if first:
+        reduced_sims[keys[0]] = simulations[keys[0]]
+        reduced_sims[keys[1]] = simulations[keys[1]]
+    else:
+        if len(simulations) != 4:
+            logging.warn("not enough simulations")
+        else:
+            reduced_sims[keys[2]] = simulations[keys[2]]
+            reduced_sims[keys[3]] = simulations[keys[3]]
+    return reduced_sims
 
-def utility(simulations, key):
+
+def utilization(simulations, key):
     """ Utilization """
 
     if len(simulations) > 2:
@@ -413,6 +433,7 @@ def run_draw(args):
         out = args.logs[0].split('-')[0]
     else:
         out = args.output
+    trace_shortname = out.split('/')[-1]
 
     if not os.path.exists(out):
         os.mkdir(out)  # doesn't exist
@@ -435,42 +456,42 @@ def run_draw(args):
         key = os.path.basename(filename)
         if args.striplegend:
             fields = key.split('-')
-            if fields[-3] == "OStrich":
-                key = fields[1] + " " + fields[-3]
-            else:
-                key = fields[-3]
-        if key in simulations:
-            print "Error: Duplikate key %s" % key
-            sys.exit(1)
-        simulations[key] = parse(filename)
+            key = fields[-5] + " " + fields[-3]
+            if key in simulations:
+                print "Error: Duplicate key %s" % key
+                sys.exit(1)
+            simulations[key] = parse(filename)
 
+    clair_simulations = choose2(simulations, True)
+    nonclair_simulations = choose2(simulations, False)
     # create selected graphs
     graphs = [
-        (cdf, "jobs", 4, ),
-        (cdf, "campaigns", 4, ),
-        (average_per_user, "jobs", 2),
-        (average_per_user, "campaigns", 2),
-        (utility, "total", None),
-        #(heatmap, "campaigns", None),
+        (cdf, "jobs", 4, simulations, ),
+        (cdf, "campaigns", 4, simulations, ),
+        (average_per_user, "jobs", 2, simulations, ),
+        (average_per_user, "campaigns", 2, simulations, ),
+        (utilization, "relative clairvoyant", None, clair_simulations),
+        (utilization, "relative nonclairvoyant", None, nonclair_simulations),
+        (heatmap, "campaigns clairvoyant", None, clair_simulations),
+        (heatmap, "campaigns nonclairvoyant", None, nonclair_simulations),
     ]
 
-    for i, (g, key, legend) in enumerate(graphs):
+    for i, (g, key, legend,sims) in enumerate(graphs):
         fig = plt.figure(i, figsize=(8, 4.5))  # size is in inches
         fig.patch.set_facecolor('white')
-        g(simulations, key)  # add plots
+        g(sims, key)     # add plots
         if legend:
             plt.legend(loc=legend, frameon=False)
 
-        # don't plot title: it's in the filename and will be in figure description
-        # title = '{} {}'.format(key.capitalize(), g.__doc__)
-        # plt.title(title, y=1.05, fontsize=20)  # add title
-
-        fname = '{}_{}.pdf'.format(key.capitalize(), g.__name__)
+        fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
         fig.tight_layout()
         fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
 
+    export_stat(simulations, os.path.join(out, trace_shortname))
+
+
 if __name__=="__main__":
-    logging.basicConfig()
+    logging.basicConfig(level=logging.INFO)
     parser = argparse.ArgumentParser(description='Draw graphs from logs')
     parser.add_argument('logs', nargs='+', help='List of log files to plot')
     parser.add_argument('--output', help='Directory to store the plots in')
