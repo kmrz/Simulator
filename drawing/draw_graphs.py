@@ -106,9 +106,9 @@ def _get_linestyle_color(i):
 
 
 def _get_linestyle_bw(i):
-    colors = ['0.0', '0.3', '0.6']
-    linestyles = [':', '--', '-', ]
-    linewidths = [1, 1, 2]
+    colors = ['0.0', '0.0', '0.6', '0.6']
+    linestyles = ['-', '--', '-', '--']
+    linewidths = [1, 1, 2, 2]
     return { 'color' : colors[i % len(colors)], 'linestyle' : linestyles[i % len(linestyles)], 'linewidth' : linewidths[i % len(linewidths)] }
 
 heatmap_palette_bw = plt.cm.Greys
@@ -123,10 +123,11 @@ def cdf(simulations, key):
 
     plt.xlabel('stretch')
     plt.ylabel('fraction of ' + key)
-
+    plt.ylim((0.4, 1.0))
+    plt.xlim((1.0, 100))
     plt.xscale('log', subsx=[])
     # plt.axis([1, 50, 0, 1])
-    plt.xticks([1, 2, 3, 5, 10, 20, 50, 100, 200, 500], [1, 2, 3, 5, 10, 20, 50, 100, 200, 500])
+    plt.xticks([1, 2, 3, 5, 10, 20, 50, 100], [1, 2, 3, 5, 10, 20, 50, 100])
 
     for i, (sim, data) in enumerate(simulations.iteritems()):
         values = {}
@@ -218,6 +219,7 @@ def average_per_user(simulations, key):
 
     plt.xlabel('user index')
     plt.ylabel("average "+ key + "' stretch")
+    plt.yscale('log', subsy=[])
 
     if key == 'jobs':
         value = 'job_stretch'
@@ -431,9 +433,11 @@ def run_draw(args):
 
     if args.output is None:
         out = args.logs[0].split('-')[0]
+        trace_shortname = out
     else:
         out = args.output
-    trace_shortname = out.split('/')[-1]
+        trace_shortname = out.split('/')[-1]
+        trace_shortname = trace_shortname.split('-')[0]
 
     if not os.path.exists(out):
         os.mkdir(out)  # doesn't exist
