@@ -129,15 +129,7 @@ def divide_jobs(jobs, first_job, block_time, block_margin):
 
     return blocks
 
-
-def cpu_percentile(block, percentile):
-    """
-    Return the number of CPUs equal to the p-th `percentile`
-    of the system resource usage over the block simulation period.
-
-    Note:
-      We are assuming that the system has no CPU limit.
-    """
+def compute_cpu_percentiles(block):
     events = {}  # pairs <time-stamp, change in the number of CPUs>
     last_event = block[-1].submit
 
@@ -156,11 +148,22 @@ def cpu_percentile(block, percentile):
         util[cpus] = util.get(cpus, 0) + period
         cpus += diff
 
-    total = sum(util.itervalues())  # total simulation period
+    util = sorted(util.iteritems())
+    return util
+
+def cpu_percentile(block, percentile):
+    """
+    Return the number of CPUs equal to the p-th `percentile`
+    of the system resource usage over the block simulation period.
+
+    Note:
+      We are assuming that the system has no CPU limit.
+    """
+
+    util = compute_cpu_percentiles(block)
+    total = sum(t for (_,t) in util)  # total simulation period
     find = int(percentile / 100.0 * total)
 
-    # sort by CPU usage and find the percentile
-    util = sorted(util.iteritems())
     elements = 0
     for cpus, period in util:
         elements += period
@@ -546,7 +549,7 @@ def threshold_percentile(jobs):
 
     logging.info('Legend: inter-arrival cdf, time in seconds')
     values.sort()
-    for i in xrange(70, 100):
+    for i in xrange(0, 100):
         p = i / 100.
         inx = int(p * len(values))
         logging.info('{:.2f} {}'.format(p, values[inx]))
@@ -578,6 +581,24 @@ def top_usage(jobs):
     logging.info(PAGE_BREAK)
 
 
+def show_cpu_percentile(jobs):
+    block = divide_jobs(jobs, 0, 0, 0)[0]
+    util = compute_cpu_percentiles(block)
+    total_time = sum(t for (_,t) in util)  # total simulation period
+    single_percentile = int(0.01 * total_time)
+
+    logging.info('Legend: percentile, cpu demand for this percentile')
+    elements = 0
+    curr_percentile = single_percentile
+    curr_perc_count = 1
+    for cpus, period in util:
+        elements += period
+        while elements >= curr_percentile:
+            logging.info('{:d} {:d}'.format(curr_perc_count, cpus))
+            curr_perc_count += 1
+            curr_percentile += single_percentile
+
+
 def display_stats(workload, args):
 
     my_parser = parsers.get_parser(workload)
@@ -585,6 +606,7 @@ def display_stats(workload, args):
 
     threshold_percentile(jobs)
     top_usage(jobs)
+    show_cpu_percentile(jobs)
 
 
 ##
