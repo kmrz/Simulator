@@ -104,13 +104,13 @@ if __name__ == "__main__":
     parser.add_argument('--workerrank', type=int, default = 0, help="rank of this worker")
     parser.add_argument('--draw', action="store_true", help="draw plots from results")
     args = parser.parse_args()
-    traces = ["LPC-EGEE-2004-1.3-cln", "ANL-Intrepid-2009-1", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2", ]
-    blocks = [1, 1, 1, 1, 14, 7]
-    cpucounts = [53, 110592, 368, 7138, 1117, 33336]
-    serials = [0, 110592/10, 368/4, 7138/10, 1117/10, 33336/10 ] # in LPC all jobs are serial
+    traces = ["ANL-Intrepid-2009-1", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1-cln", "LLNL-Thunder-2007-1.1-cln"]
+    blocks = [1, 1, 1, 14, 7, 2] # number of 90-day blocks that will be independent simulations
+    cpucounts = [112896, 368, 7606, 1117, 75828, 3824] # number of CPUs of a simulated machine
+    serials = [112896/10, 368/4, 7606/10, 1117/10, 75828/10, 3824/10] # max number of processors a job can request
+
     if not (args.genconfigs or args.simulate or args.draw):
         parser.error('No action requested, add --genconfigs or --simulate or --draw')
-    # PIK cpu count: 70% - 1117; 80% - 1418
 
     try:
         os.mkdir("logs")
