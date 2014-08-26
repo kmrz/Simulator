@@ -106,9 +106,9 @@ def _get_linestyle_color(i):
 
 
 def _get_linestyle_bw(i):
-    colors = ['0.0', '0.0', '0.6', '0.6']
+    colors = ['0.6', '0.6', '0.0', '0.0']
     linestyles = ['-', '--', '-', '--']
-    linewidths = [1, 1, 2, 2]
+    linewidths = [2, 2, 1, 1]
     return { 'color' : colors[i % len(colors)], 'linestyle' : linestyles[i % len(linestyles)], 'linewidth' : linewidths[i % len(linewidths)] }
 
 heatmap_palette_bw = plt.cm.Greys
