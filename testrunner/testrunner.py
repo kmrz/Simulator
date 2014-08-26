@@ -24,7 +24,7 @@ simconfig = """
 --cpu_percent    %d
 --output         testrunner_results
 
---threshold      10
+--threshold      %d
 --decay          1
 --default_limit  7
 --share_file     shares.txt
@@ -42,7 +42,7 @@ simconfig = """
 
 configdir = "testrunner_confs"
 
-def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial = 0, writefile = True):
+def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial = 0, threshold = 10, writefile = True):
     confname = "conf-trun-"+tracename+"-"
     if clairvoyant:
         algs = "OStrich Fairshare"
@@ -70,7 +70,7 @@ def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial
         cpu_percent = 0
 
     if writefile:
-        curr_config = simconfig % (confname, block_time, one_block, blocknumber, serial, cpu_count, cpu_percent, estimator, submitter, algs)
+        curr_config = simconfig % (confname, block_time, one_block, blocknumber, serial, cpu_count, cpu_percent, threshold, estimator, submitter, algs)
         with open(configdir+"/"+confname, "w") as f:
             f.write(curr_config)
     return confname
@@ -104,10 +104,20 @@ if __name__ == "__main__":
     parser.add_argument('--workerrank', type=int, default = 0, help="rank of this worker")
     parser.add_argument('--draw', action="store_true", help="draw plots from results")
     args = parser.parse_args()
-    traces = ["ANL-Intrepid-2009-1", "METACENTRUM-2009-2", "RICC-2010-2", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1-cln", "LLNL-Thunder-2007-1.1-cln"]
-    blocks = [1, 1, 1, 14, 7, 2] # number of 90-day blocks that will be independent simulations
-    cpucounts = [112896, 368, 7606, 1117, 75828, 3824] # number of CPUs of a simulated machine
-    serials = [112896/10, 368/4, 7606/10, 1117/10, 75828/10, 3824/10] # max number of processors a job can request
+    traces = ["ANL-Intrepid-2009-1", "METACENTRUM-2009-2fil", "RICC-2010-2fil", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1clnfil", "LLNL-Thunder-2007-1.1cln"]
+    blocks = [1, 1, 1, 14, 3, 2] # number of 90-day blocks that will be independent simulations
+    cpucounts = [163840, 375, 8192, 2560, 92260, 4096] # number of CPUs of a simulated machine
+    serials = [163840/10, 368/4, 8192/10, 2560/10, 92260/10, 4096/10]
+    thresholds = [10, 10, 1, 10, 10, 10]
+    # max number of processors a job can request
+    # traces = ["RICC-2010-2"]
+    # blocks = [1]
+    # cpucounts = [7606]
+    # serials = [7606/10]
+    # traces = ["METAfil3cut"]
+    # blocks = [1]
+    # cpucounts = [ 375 ]
+    # serials = [ 375 ]
 
     if not (args.genconfigs or args.simulate or args.draw):
         parser.error('No action requested, add --genconfigs or --simulate or --draw')
@@ -141,8 +151,8 @@ if __name__ == "__main__":
             for blocknumber in range(0, blocks[i]):
                 if blocks[i] == 1:
                     blocknumber = -1
-                configs.append( conf(tracename, blocknumber, True, cpucounts[i], serials[i], args.genconfigs) )
-                configs.append( conf(tracename, blocknumber, False, cpucounts[i], serials[i], args.genconfigs) )
+                configs.append( conf(tracename, blocknumber, True, cpucounts[i], serials[i], thresholds[i], args.genconfigs) )
+                configs.append( conf(tracename, blocknumber, False, cpucounts[i], serials[i], thresholds[i], args.genconfigs) )
                 argtraces.append(tracename)
                 argtraces.append(tracename)
 
@@ -161,4 +171,5 @@ if __name__ == "__main__":
 
     if args.draw:
         for trace in traces:
+            log.info("drawing trace: "+str(trace))
             draw_trace(trace)

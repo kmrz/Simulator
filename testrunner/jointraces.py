@@ -1,5 +1,6 @@
 import os
 import glob
+from time import strftime
 
 import logging
 
@@ -16,23 +17,21 @@ def jointrace(tracename, outname, block_count):
     with open(outname, "w") as output:
         for blockname in blocknames:
             log.info("blockname %s", blockname)
-            blockindex = blockname.split("-")[7]
+            blockindex = blockname.split("-")[-5]
             if int(blockindex) == block_count:
                 break
             with open(blockname, "r") as input:
                 for line in input:
                     output.write(line)
 
-
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
-    traces = ["PIK-IPLEX-2009-1", "CEA-Curie-2011-2", ]
-    blocks = [14, 8]
+    traces = ["PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1cln", "LLNL-Thunder-2007-1.1cln"]
+    blocks = [14, 3, 2]
+    now = strftime("%b%d_%H-%M")
     for (block_count, trace) in zip(blocks, traces):
         for alg in ("Fairshare", "OStrich"):
             for voyance in ("clairvoyant", "nonclairvoyant"):
-                if alg=="Fairshare" and voyance=="nonclairvoyant":
-                    continue
-                tracename = "testrunner_results/conf-trun-"+voyance+"-"+trace+"*"+alg+"*"
-                outname = "testrunner_results/conf-trun-"+voyance+"-"+trace+"-00-b-"+alg
+                tracename = "testrunner_results/blocktraces/conf-trun-"+trace+"-"+voyance+"*"+alg+"*"
+                outname = "testrunner_results/conf-trun-"+trace+"-"+voyance+"-0-"+alg+"-"+now
                 jointrace(tracename, outname, block_count)
