@@ -26,8 +26,10 @@ def jointrace(tracename, outname, block_count):
 
 if __name__=="__main__":
     logging.basicConfig(level=logging.INFO)
-    traces = ["PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1cln", "LLNL-Thunder-2007-1.1cln"]
-    blocks = [14, 3, 2]
+    timefactors = ["0.80", "0.85", "0.90", "0.95"]
+    tracenames = ["PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1clnfil", "LLNL-Thunder-2007-1.1cln"]
+    traces = [tr + "_" + factor for tr in tracenames for factor in timefactors]
+    blocks = [14] * len(timefactors) + [3] * len(timefactors) + [2] * len(timefactors)
     now = strftime("%b%d_%H-%M")
     for (block_count, trace) in zip(blocks, traces):
         for alg in ("Fairshare", "OStrich"):
