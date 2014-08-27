@@ -23,6 +23,7 @@ simconfig = """
 --cpu_count      %d
 --cpu_percent    %d
 --output         testrunner_results
+--time_factor    %.2f
 
 --threshold      %d
 --decay          1
@@ -42,8 +43,8 @@ simconfig = """
 
 configdir = "testrunner_confs"
 
-def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial = 0, threshold = 10, writefile = True):
-    confname = "conf-trun-"+tracename+"-"
+def conf(tracename, blocknumber = -1, time_factor = 1.0, clairvoyant = False, cpu_count = 0, serial = 0, threshold = 10, writefile = True):
+    confname = "conf-trun-%s_%.2f-" % (tracename, time_factor)
     if clairvoyant:
         algs = "OStrich Fairshare"
         submitter = "OracleSubmitter"
@@ -65,12 +66,12 @@ def conf(tracename, blocknumber = -1, clairvoyant = False, cpu_count = 0, serial
         confname += "0"
     else:
         one_block = "True"
-        block_time = 90
+        block_time = int(90 * time_factor)
         confname += "%02d" % blocknumber
         cpu_percent = 0
 
     if writefile:
-        curr_config = simconfig % (confname, block_time, one_block, blocknumber, serial, cpu_count, cpu_percent, threshold, estimator, submitter, algs)
+        curr_config = simconfig % (confname, block_time, one_block, blocknumber, serial, cpu_count, cpu_percent, time_factor, threshold, estimator, submitter, algs)
         with open(configdir+"/"+confname, "w") as f:
             f.write(curr_config)
     return confname
@@ -87,11 +88,12 @@ def run_standard((argtrace, argconfig)):
     run("python", "main.py", "run", argtrace, argconfig)
 
 
-def draw_trace(tracename):
-    fs_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-clairvoyant-*-Fairshare-*")[0]
-    fs_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-nonclairvoyant-*-Fairshare-*")[0]
-    os_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-clairvoyant-*-OStrich-*")[0]
-    os_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"-nonclairvoyant-*-OStrich-*")[0]
+def draw_trace(tracename, time_factor):
+    s_time_factor = "%.2f" % time_factor
+    fs_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"_"+s_time_factor+"-clairvoyant-*-Fairshare-*")[0]
+    fs_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"_"+s_time_factor+"-nonclairvoyant-*-Fairshare-*")[0]
+    os_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"_"+s_time_factor+"-clairvoyant-*-OStrich-*")[0]
+    os_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"_"+s_time_factor+"-nonclairvoyant-*-OStrich-*")[0]
     log.info("files: %s %s %s %s", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
     run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
 
@@ -107,9 +109,11 @@ if __name__ == "__main__":
     traces = ["ANL-Intrepid-2009-1", "METACENTRUM-2009-2fil", "RICC-2010-2fil", "PIK-IPLEX-2009-1", "CEA-Curie-2011-2.1clnfil", "LLNL-Thunder-2007-1.1cln"]
     blocks = [1, 1, 1, 14, 3, 2] # number of 90-day blocks that will be independent simulations
     cpucounts = [163840, 375, 8192, 2560, 92260, 4096] # number of CPUs of a simulated machine
-    serials = [163840/10, 368/4, 8192/10, 2560/10, 92260/10, 4096/10]
+    serials = [163840/10, 368/4, 8192/10, 2560/10, 92260/10, 4096/10] # max number of processors a job can request
     thresholds = [10, 10, 1, 10, 10, 10]
-    # max number of processors a job can request
+
+    time_factors = [0.8, 0.85, 0.9, 0.95]
+
     # traces = ["RICC-2010-2"]
     # blocks = [1]
     # cpucounts = [7606]
@@ -147,14 +151,15 @@ if __name__ == "__main__":
 
         configs = []
         argtraces = []
-        for (i,tracename) in enumerate(traces):
-            for blocknumber in range(0, blocks[i]):
-                if blocks[i] == 1:
-                    blocknumber = -1
-                configs.append( conf(tracename, blocknumber, True, cpucounts[i], serials[i], thresholds[i], args.genconfigs) )
-                configs.append( conf(tracename, blocknumber, False, cpucounts[i], serials[i], thresholds[i], args.genconfigs) )
-                argtraces.append(tracename)
-                argtraces.append(tracename)
+        for time_factor in time_factors:
+            for (i,tracename) in enumerate(traces):
+                for blocknumber in range(0, blocks[i]):
+                    if blocks[i] == 1:
+                        blocknumber = -1
+                    configs.append( conf(tracename, blocknumber, time_factor, True, cpucounts[i], serials[i], thresholds[i], args.genconfigs) )
+                    configs.append( conf(tracename, blocknumber, time_factor, False, cpucounts[i], serials[i], thresholds[i], args.genconfigs) )
+                    argtraces.append(tracename)
+                    argtraces.append(tracename)
 
         argconfigs = [ "@"+configdir+"/"+config for config in configs ]
         argtraces = [ "../traces/"+tracename+".swf" for tracename in argtraces ]
@@ -170,6 +175,7 @@ if __name__ == "__main__":
             pool.map(run_standard, itertools.izip(argtraces, argconfigs))
 
     if args.draw:
-        for trace in traces:
-            log.info("drawing trace: "+str(trace))
-            draw_trace(trace)
+        for time_factor in time_factors:
+            for trace in traces:
+                log.info("drawing trace: "+str(trace))
+                draw_trace(trace, time_factor)
