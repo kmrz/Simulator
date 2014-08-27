@@ -93,6 +93,7 @@ sim_templates = [
              ' most active users', 0),
     Template('cpu_count', 'Set a static number of CPUs, takes precedence', 0),
     Template('cpu_percent', 'Set the number of CPUs to the P-th percentile', 70),
+    Template('time_factor', 'Multiply submission times by a factor', 1.0),
     Template('output', 'Directory to store the results in', 'sim_results'),
 ]
 
