@@ -95,7 +95,7 @@ def draw_trace(tracename, time_factor):
     os_clairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"_"+s_time_factor+"-clairvoyant-*-OStrich-*")[0]
     os_unclairfile = glob.glob("testrunner_results/conf-trun-"+tracename+"_"+s_time_factor+"-nonclairvoyant-*-OStrich-*")[0]
     log.info("files: %s %s %s %s", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
-    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename, "--bw", "--striplegend", "--minlen", "60", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
+    run("python", "drawing/draw_graphs.py", "--output", "testrunner_results/"+tracename+"_"+s_time_factor, "--bw", "--striplegend", "--minlen", "60", os_clairfile, fs_clairfile, os_unclairfile, fs_unclairfile)
 
 
 if __name__ == "__main__":
