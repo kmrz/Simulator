@@ -356,7 +356,7 @@ def run(workload, args):
     my_parser = parsers.get_parser(workload)
     jobs, users = my_parser.parse_workload(workload, sim_conf.serial)
     for job in jobs:
-        job.submit = job.submit * sim_conf.time_factor
+        job.submit = int(job.submit * sim_conf.time_factor)
     jobs.sort(key=lambda j: j.submit)  # order by submit time
 
     # remove some jobs if requested
