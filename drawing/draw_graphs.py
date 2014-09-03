@@ -62,9 +62,11 @@ class Campaign(object):
         self._system_proc = system_proc
 
     def calc_stretch(self):
-        avg = float(self.workload) / self._system_proc
+        workload_duration = float(self.workload) / self._system_proc
         longest_job = max(map(lambda j: j.run_time, self.jobs))
-        lower_bound = max(avg, longest_job)
+        last_submitted_job = max(self.jobs, key = lambda job: job.submit)
+        camp_duration = last_submitted_job.submit + last_submitted_job.run_time - self.start
+        lower_bound = max(workload_duration, longest_job, camp_duration)
         lower_bound = max(Campaign.short_len, lower_bound)
         length = float(self.end - self.start)
         self.stretch = round(length / lower_bound, 2)
