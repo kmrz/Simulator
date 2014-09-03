@@ -168,6 +168,10 @@ def export_stat(simulations, csvbasename):
 
 
 def heatmap(simulations, key, colorbar_range = 100):
+    if len(simulations) == 0:
+        logging.warn("no simulations to draw")
+        return
+
     max_y = 10
     v = {}
     for i in range(11, 20+1): # utility incremented by 0.05
@@ -257,6 +261,9 @@ def utilization(simulations, key):
 
     if len(simulations) > 2:
         simulations = choose2(simulations)
+    if len(simulations) == 0:
+        logging.warn("no simulations to draw")
+        return
 
     def timeline(ut, step):
         padded = itertools.chain(ut, [(step-1, 0)])
@@ -483,15 +490,16 @@ def run_draw(args):
     ]
 
     for i, (g, key, legend,sims) in enumerate(graphs):
-        fig = plt.figure(i, figsize=(8, 4.5))  # size is in inches
-        fig.patch.set_facecolor('white')
-        g(sims, key)     # add plots
-        if legend:
-            plt.legend(loc=legend, frameon=False)
+        if len(sims) > 0:
+            fig = plt.figure(i, figsize=(8, 4.5))  # size is in inches
+            fig.patch.set_facecolor('white')
+            g(sims, key)     # add plots
+            if legend:
+                plt.legend(loc=legend, frameon=False)
 
-        fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
-        fig.tight_layout()
-        fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
+            fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
+            fig.tight_layout()
+            fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
 
     export_stat(simulations, os.path.join(out, trace_shortname))
 
