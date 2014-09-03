@@ -62,9 +62,11 @@ class Campaign(object):
         self._system_proc = system_proc
 
     def calc_stretch(self):
-        avg = float(self.workload) / self._system_proc
+        workload_duration = float(self.workload) / self._system_proc
         longest_job = max(map(lambda j: j.run_time, self.jobs))
-        lower_bound = max(avg, longest_job)
+        last_submitted_job = max(self.jobs, key = lambda job: job.submit)
+        camp_duration = last_submitted_job.submit + last_submitted_job.run_time - self.start
+        lower_bound = max(workload_duration, longest_job, camp_duration)
         lower_bound = max(Campaign.short_len, lower_bound)
         length = float(self.end - self.start)
         self.stretch = round(length / lower_bound, 2)
@@ -166,6 +168,10 @@ def export_stat(simulations, csvbasename):
 
 
 def heatmap(simulations, key, colorbar_range = 100):
+    if len(simulations) == 0:
+        logging.warn("no simulations to draw")
+        return
+
     max_y = 10
     v = {}
     for i in range(11, 20+1): # utility incremented by 0.05
@@ -255,6 +261,9 @@ def utilization(simulations, key):
 
     if len(simulations) > 2:
         simulations = choose2(simulations)
+    if len(simulations) == 0:
+        logging.warn("no simulations to draw")
+        return
 
     def timeline(ut, step):
         padded = itertools.chain(ut, [(step-1, 0)])
@@ -481,15 +490,16 @@ def run_draw(args):
     ]
 
     for i, (g, key, legend,sims) in enumerate(graphs):
-        fig = plt.figure(i, figsize=(8, 4.5))  # size is in inches
-        fig.patch.set_facecolor('white')
-        g(sims, key)     # add plots
-        if legend:
-            plt.legend(loc=legend, frameon=False)
+        if len(sims) > 0:
+            fig = plt.figure(i, figsize=(8, 4.5))  # size is in inches
+            fig.patch.set_facecolor('white')
+            g(sims, key)     # add plots
+            if legend:
+                plt.legend(loc=legend, frameon=False)
 
-        fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
-        fig.tight_layout()
-        fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
+            fname = '{}_{}_{}.pdf'.format(trace_shortname, key.capitalize(), g.__name__)
+            fig.tight_layout()
+            fig.savefig(os.path.join(out, fname), format='pdf', facecolor=fig.get_facecolor())
 
     export_stat(simulations, os.path.join(out, trace_shortname))
 
