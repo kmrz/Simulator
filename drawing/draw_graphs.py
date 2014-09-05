@@ -157,14 +157,12 @@ def export_stat(simulations, csvbasename):
         for (sim, data) in simulations.iteritems():
             for c in data['campaigns']:
                 csvw.writerow([sim, c.ID, c.user, c.utility, c.start, c.end, c.workload, c.stretch])
-    with open(csvbasename+"-util.csv", 'wb') as csvfile:
-        csvfile.write("sim_name, time, duration, utilization\n")
+    with open(csvbasename+"-job.csv", 'wb') as csvfile:
+        csvfile.write("sim_name, job_id, camp_id, user_id, submtime, starttime, runtime, numproc\n")
         csvw = csv.writer(csvfile)
-        currtime = 0
         for (sim, data) in simulations.iteritems():
-            for c in data['utility']:
-                csvw.writerow([sim, currtime, c[0], c[1]])
-                currtime += c[0]
+            for j in data['jobs']:
+                csvw.writerow([sim, j.ID, j.camp, j.user, j.submit, j.start, j.run_time, j.proc])
 
 
 def heatmap(simulations, key, colorbar_range = 100):
@@ -310,6 +308,9 @@ def utilization(simulations, key):
 
     plt.xlabel('time')
     plt.xticks([])
+
+    plt.text(1, 0.1, simulations.keys()[0])
+    plt.text(1, -0.1, simulations.keys()[1])
 
 
 def parse(filename):
